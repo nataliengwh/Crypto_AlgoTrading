@@ -8,7 +8,7 @@ from utils import print_trade_analysis, print_sqn
 
 class CustomDataset(bt.feeds.GenericCSVData):
     params = (
-        ('datetime', 1),sdfsdf
+        ('datetime', 1),
         ('open', 2),
         ('high', 3),
         ('low', 4),
