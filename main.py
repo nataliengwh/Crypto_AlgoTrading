@@ -19,7 +19,7 @@ class CustomDataset(bt.feeds.GenericCSVData):
 def main():    
     data = CustomDataset(
             name=COIN_TARGET,
-            dataname="data/binance_btc_df.csv",
+            dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
             fromdate=dt.datetime(2020, 1, 1),
             todate=dt.datetime(2021, 12, 31),
