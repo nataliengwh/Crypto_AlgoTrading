@@ -48,7 +48,7 @@ def main():
 
     # Include Strategy
     cerebro.addstrategy(SMA)
-    # cerebro.addstrategy(RsiSignalStrategy)
+    # cerebro.addstrategy(BasicRSI)
 
     # Starting backtrader bot
     initial_value = cerebro.broker.getvalue()
