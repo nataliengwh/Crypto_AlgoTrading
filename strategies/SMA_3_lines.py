@@ -8,8 +8,8 @@ class SMA_3_lines(StrategyBase):
         self.log("Using 3 SMA strategy")
 
         self.sma_fast = bt.indicators.MovingAverageSimple(self.data0.close, period = 20)
-        self.sma_mid = bt.indicators.MovingAverageSimple(self.data0.close, period = 60)
-        self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 200)
+        self.sma_mid = bt.indicators.MovingAverageSimple(self.data0.close, period = 40)
+        self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 120)
         self.profit_treshold = 0
         self.profit = 0
         self.max_profit = 0
