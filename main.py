@@ -1,12 +1,10 @@
 import time
 import backtrader as bt
 import datetime as dt
-from matplotlib import style
 import pandas as pd
 from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
 from strategies.basic_rsi import BasicRSI
 from strategies.SMA import SMA
-from strategies.SMA_3_lines import SMA_3_lines
 from utils import print_trade_analysis, print_sqn
 
 class CustomDataset(bt.feeds.GenericCSVData):
@@ -49,8 +47,8 @@ def main():
     #cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
     # Include Strategy
-    cerebro.addstrategy(SMA_3_lines)
-    # cerebro.addstrategy(RsiSignalStrategy)
+    cerebro.addstrategy(SMA)
+    # cerebro.addstrategy(BasicRSI)
 
     # Starting backtrader bot
     initial_value = cerebro.broker.getvalue()
@@ -68,7 +66,7 @@ def main():
 
     # plot result
     if DEBUG:
-        cerebro.plot(style='candle')
+        cerebro.plot()
     
 
 if __name__ == "__main__":
