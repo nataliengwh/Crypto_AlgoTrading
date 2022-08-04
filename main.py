@@ -21,7 +21,7 @@ class CustomDataset(bt.feeds.GenericCSVData):
 
 def main():
     cerebro = bt.Cerebro(quicknotify=True)
-    ####### DATA FOR SINGLE TS #######
+    ############## DATA FOR SINGLE TS ##############
     # data = CustomDataset(
     #         name=COIN_TARGET,
     #         dataname="data/BTCUSDT.csv",
@@ -35,7 +35,7 @@ def main():
     # cerebro.resampledata(data, timeframe = bt.TimeFrame.Days)
     # cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=1)
 
-    ####### DATA FOR MULTI TS #######
+    ############## DATA FOR MULTI TS ##############
     coin0, coin1 = ("BTCUSDT","ETHUSDT")
     data0 = CustomDataset(
             name=coin0,
@@ -56,6 +56,7 @@ def main():
     cerebro.adddata(data0)
     cerebro.adddata(data1)
 
+    ############## TRADE SETUP ##############
     class FullMoney(bt.sizers.PercentSizer):
         params = (
             ('percents', 99),
@@ -66,25 +67,25 @@ def main():
     cerebro.addsizer(FullMoney)
 
     
-    ####### EVALUATION ANALYZERS #######
+    ############## EVALUATION ANALYZERS ##############
     # SQN = Average( profit / risk ) / StdDev( profit / risk ) * SquareRoot( number of trades )
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
     cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
-    ####### IMPLEMENT STRATEGIES #######
+    ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
     # cerebro.addstrategy(DualThrust)
     cerebro.addstrategy(PairsTrading,
-                        # lookback=20,
-                        # max_lookback=30,
-                        # enter_threshold_size=2, 
-                        # exit_threshold_size=0.5, 
-                        # loss_limit=-0.015,
-                        # consider_borrow_cost=False,
-                        # consider_commission=False,
-                        # print_msg=False
+                        lookback=20,
+                        max_lookback=30,
+                        enter_threshold_size=2, 
+                        exit_threshold_size=0.5, 
+                        loss_limit=-0.015,
+                        consider_borrow_cost=False,
+                        consider_commission=False,
+                        print_msg=False
                         )
 
     # Starting backtrader bot
