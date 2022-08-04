@@ -2,13 +2,12 @@ import backtrader as bt
 from datetime import datetime
 from termcolor import colored
 
-class SMA_3_lines(bt.Strategy):
+class SMA(bt.Strategy):
 
     def __init__(self):
         self.log("Using SMA strategy")
-
         self.sma_fast = bt.indicators.MovingAverageSimple(self.data0.close, period = 500)
-        self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 1000)
+        self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 800)
         
         self.signal = bt.indicators.CrossOver(self.sma_fast, self.sma_slow)
         self.signal.plotinfo.plot = False

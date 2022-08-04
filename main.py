@@ -3,8 +3,8 @@ import backtrader as bt
 import datetime as dt
 import pandas as pd
 from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
-from strategies.basic_rsi import BasicRSI
-from strategies.SMA import SMA
+#from strategies.SMA import SMA
+from strategies.Dual_Thrust import DualThrust
 from utils import print_trade_analysis, print_sqn
 
 class CustomDataset(bt.feeds.GenericCSVData):
@@ -35,6 +35,7 @@ def main():
     # cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=1)
     cerebro = bt.Cerebro(quicknotify=True)
     cerebro.adddata(data)
+    cerebro.resampledata(data, timeframe = bt.TimeFrame.Days)
     broker = cerebro.getbroker()
     broker.setcommission(commission=0.001, name=COIN_TARGET)  # Simulating exchange fee
     broker.setcash(1000000.0)
@@ -47,7 +48,7 @@ def main():
     #cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
     # Include Strategy
-    cerebro.addstrategy(SMA)
+    cerebro.addstrategy(DualThrust)
     # cerebro.addstrategy(BasicRSI)
 
     # Starting backtrader bot
@@ -66,7 +67,7 @@ def main():
 
     # plot result
     if DEBUG:
-        cerebro.plot()
+        cerebro.plot(style = 'candle')
     
 
 if __name__ == "__main__":
