@@ -153,10 +153,10 @@ class PairsTrading(StrategyBase):
         self.initial_long_pv, self.initial_short_pv = None, None
         self.initial_price_data0, self.initial_price_data1 = None, None
     
-    def long_portfolio_value(price, qty):
+    def long_portfolio_value(self, price, qty):
         return price * qty
 
-    def short_portfolio_value(price_initial, price_final, qty):
+    def short_portfolio_value(self, price_initial, price_final, qty):
         return qty * (1.5 * price_initial - price_final)
 
     ################################# FOR EXECUTIONS #################################
