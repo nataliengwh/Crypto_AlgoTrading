@@ -55,6 +55,8 @@ def main():
         )
     cerebro.adddata(data0)
     cerebro.adddata(data1)
+    # cerebro.resampledata(data0, timeframe=bt.TimeFrame.Days, compression=1)
+    # cerebro.resampledata(data1, timeframe=bt.TimeFrame.Days, compression=1)
 
     ############## TRADE SETUP ##############
     class FullMoney(bt.sizers.PercentSizer):
@@ -65,7 +67,6 @@ def main():
     broker.setcommission(commission=0.001, name=COIN_TARGET)  # Simulating exchange fee
     broker.setcash(1000000.0)
     cerebro.addsizer(FullMoney)
-
     
     ############## EVALUATION ANALYZERS ##############
     # SQN = Average( profit / risk ) / StdDev( profit / risk ) * SquareRoot( number of trades )
@@ -83,9 +84,8 @@ def main():
                         enter_threshold_size=2, 
                         exit_threshold_size=0.5, 
                         loss_limit=-0.015,
-                        consider_borrow_cost=False,
-                        consider_commission=False,
-                        print_msg=False
+                        coin0=coin0,
+                        coin1=coin1,
                         )
 
     # Starting backtrader bot
