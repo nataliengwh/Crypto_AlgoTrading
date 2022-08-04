@@ -5,7 +5,7 @@ import pandas as pd
 import logging
 _logger = logging.getLogger(__name__)
 
-class Pairs_Trading(StrategyBase):
+class PairsTrading(StrategyBase):
     params = dict(
         
     )
@@ -86,7 +86,7 @@ class Pairs_Trading(StrategyBase):
 
         # keep track of trade variables
         self.initial_cash = self.qty1 * self.data1[0] + 0.5 * self.qty0 * self.data0[0]
-        self.initial_long_pv = PTStrategy.long_portfolio_value(self.qty1, self.data1[0])
+        self.initial_long_pv = self.long_portfolio_value(self.qty1, self.data1[0])
         self.initial_short_pv = 0.5 * self.data0[0] * self.qty0
         self.initial_price_data0, self.initial_price_data1 = self.data0[0], self.data1[0]
         
@@ -97,6 +97,12 @@ class Pairs_Trading(StrategyBase):
         self.sell_amt = x + self.qty0
         self.buy_amt = y + self.qty1
     
+    def long_portfolio_value(price, qty):
+        return price * qty
+
+    def short_portfolio_value(price_initial, price_final, qty):
+        return qty * (1.5 * price_initial - price_final)
+
     def long_spread(self):
         # Calculating the number of shares for each stock
         x = int((2 * self.broker.getvalue() / 3.0) / (self.data0[0])) 
@@ -182,9 +188,6 @@ class Pairs_Trading(StrategyBase):
         if self.allow_trade and (not self.orderid):
             self.run_trade_strategy()
 
-        ###################################################################################
-        # STRATEGY LOGIC                                                                  #
-        ###################################################################################
         # if an order is active, no new orders are allowed
         if self.allow_trade and (not self.orderid):
             self.run_trade_logic()
