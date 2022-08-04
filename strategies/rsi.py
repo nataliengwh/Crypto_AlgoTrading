@@ -2,7 +2,7 @@ import backtrader as bt
 from config import ENV, PRODUCTION
 from strategies.base import StrategyBase
 
-class BasicRSI(StrategyBase):
+class RSI(StrategyBase):
     params = dict(
         period_ema_fast=20, #10
         period_ema_slow=50 #100

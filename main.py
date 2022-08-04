@@ -3,8 +3,10 @@ import backtrader as bt
 import datetime as dt
 import pandas as pd
 from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
-#from strategies.SMA import SMA
+from strategies.rsi import RSI
+from strategies.SMA import SMA
 from strategies.Dual_Thrust import DualThrust
+from strategies.pairs_trading import PairsTrading
 from utils import print_trade_analysis, print_sqn
 
 class CustomDataset(bt.feeds.GenericCSVData):
@@ -22,7 +24,8 @@ def main():
             name=COIN_TARGET,
             dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2020, 1, 1),
+            # buy and hold in this period is 540% (7.2k to 46.3k)
+            fromdate=dt.datetime(2020, 1, 1), 
             todate=dt.datetime(2021, 12, 31),
             nullvalue=0.0
         )
@@ -48,8 +51,10 @@ def main():
     #cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
     # Include Strategy
-    cerebro.addstrategy(DualThrust)
-    # cerebro.addstrategy(BasicRSI)
+    # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
+    # cerebro.addstrategy(SMA)
+    # cerebro.addstrategy(DualThrust)
+    cerebro.addstrategy(PairsTrading)
 
     # Starting backtrader bot
     initial_value = cerebro.broker.getvalue()
@@ -68,7 +73,6 @@ def main():
     # plot result
     if DEBUG:
         cerebro.plot(style = 'candle')
-    
 
 if __name__ == "__main__":
     try:
