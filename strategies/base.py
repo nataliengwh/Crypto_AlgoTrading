@@ -4,6 +4,7 @@ from termcolor import colored
 from config import DEVELOPMENT, COIN_TARGET, COIN_REFER, ENV, PRODUCTION, DEBUG
 
 class StrategyBase(bt.Strategy):
+    # for notification of order, trade
     def __init__(self):
         self.order = None
         self.last_operation = "SELL"

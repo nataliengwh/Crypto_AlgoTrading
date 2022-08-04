@@ -19,42 +19,73 @@ class CustomDataset(bt.feeds.GenericCSVData):
         ('volume', 6),
     )
 
-def main():    
-    data = CustomDataset(
-            name=COIN_TARGET,
+def main():
+    cerebro = bt.Cerebro(quicknotify=True)
+    ####### DATA FOR SINGLE TS #######
+    # data = CustomDataset(
+    #         name=COIN_TARGET,
+    #         dataname="data/BTCUSDT.csv",
+    #         timeframe=bt.TimeFrame.Minutes,
+    #         # buy and hold btc in this period is 540% (7.2k to 46.3k)
+    #         fromdate=dt.datetime(2020, 1, 1), 
+    #         todate=dt.datetime(2021, 12, 31),
+    #         nullvalue=0.0
+    #     )
+    # cerebro.adddata(data)
+    # cerebro.resampledata(data, timeframe = bt.TimeFrame.Days)
+    # cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=1)
+
+    ####### DATA FOR MULTI TS #######
+    coin0, coin1 = ("BTCUSDT","ETHUSDT")
+    data0 = CustomDataset(
+            name=coin0,
             dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
-            # buy and hold in this period is 540% (7.2k to 46.3k)
             fromdate=dt.datetime(2020, 1, 1), 
             todate=dt.datetime(2021, 12, 31),
             nullvalue=0.0
         )
+    data1 = CustomDataset(
+            name=coin1,
+            dataname="data/ETHUSDT.csv",
+            timeframe=bt.TimeFrame.Minutes,
+            fromdate=dt.datetime(2020, 1, 1), 
+            todate=dt.datetime(2021, 12, 31),
+            nullvalue=0.0
+        )
+    cerebro.adddata(data0)
+    cerebro.adddata(data1)
 
     class FullMoney(bt.sizers.PercentSizer):
         params = (
             ('percents', 99),
         )
-
-    # cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=1)
-    cerebro = bt.Cerebro(quicknotify=True)
-    cerebro.adddata(data)
-    cerebro.resampledata(data, timeframe = bt.TimeFrame.Days)
     broker = cerebro.getbroker()
     broker.setcommission(commission=0.001, name=COIN_TARGET)  # Simulating exchange fee
     broker.setcash(1000000.0)
     cerebro.addsizer(FullMoney)
 
-    # Analyzers to evaluate trades and strategies
+    
+    ####### EVALUATION ANALYZERS #######
     # SQN = Average( profit / risk ) / StdDev( profit / risk ) * SquareRoot( number of trades )
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
-    #cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
-    # Include Strategy
+    ####### IMPLEMENT STRATEGIES #######
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
     # cerebro.addstrategy(DualThrust)
-    cerebro.addstrategy(PairsTrading)
+    cerebro.addstrategy(PairsTrading,
+                        # lookback=20,
+                        # max_lookback=30,
+                        # enter_threshold_size=2, 
+                        # exit_threshold_size=0.5, 
+                        # loss_limit=-0.015,
+                        # consider_borrow_cost=False,
+                        # consider_commission=False,
+                        # print_msg=False
+                        )
 
     # Starting backtrader bot
     initial_value = cerebro.broker.getvalue()
@@ -66,10 +97,9 @@ def main():
     print('Final Portfolio Value: %.2f' % final_value)
     print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
     print_sqn(result[0].analyzers.sqn.get_analysis())
-    #print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
+    print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
     print_trade_analysis(result[0].analyzers.ta.get_analysis())
     
-
     # plot result
     if DEBUG:
         cerebro.plot(style = 'candle')
