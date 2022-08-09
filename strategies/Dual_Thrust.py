@@ -16,16 +16,17 @@ class DT_line(bt.Indicator):
         LL = min(self.data.low.get(-1, size = self.p.period))
         R = max(HH - LC, HC - LL)
         self.lines.U[0] = self.data.open[0] + self.p.k_u * R
-        self.lines.D[0] = self.data.open[0] - self.p.k_u * R
+        self.lines.D[0] = self.data.open[0] - self.p.k_d * R
 
 
 
 class DualThrust(bt.Strategy):
-
+    params = (('period',2), ('k_u',0.7), ('k_d', 0.7))
+    
     def __init__(self):
         self.log("Using Dual Thrust strategy")
         self.dataclose = self.data0.close
-        self.D_line = DT_line(self.data1)
+        self.D_line = DT_line(self.data1, period = self.p.period, k_u = self.p.k_u, k_d = self.p.k_d)
         self.D_line = self.D_line()
         self.D_line.plotinfo.plotmaster = self.data0
 
@@ -49,18 +50,23 @@ class DualThrust(bt.Strategy):
         print('[%s] %s' % (value.strftime("%d-%m-%y %H:%M"), txt))
 
     def next(self):
-        if self.data.datetime.time() > time(0, 15) and self.data.datetime.time() < time(23, 45):
-            if not self.position and self.buy_signal[0] == 1:
-                self.order = self.buy()
-            if not self.position and self.sell_signal[0] == 1:
-                self.order = self.sell()
-            
-            if self.getposition().size < 0 and self.buy_signal[0] == 1:
-                self.order = self.close()
-                self.order = self.buy()
-            if self.getposition().size > 0 and self.sell_signal[0] == 1:
-                self.order = self.close()
-                self.order = self.sell()
-
-        if self.data.datetime.time() >= time(23, 45) and self.position:
+        # if self.data.datetime.time() > time(0, 15) and self.data.datetime.time() < time(23, 45):
+        if not self.position and self.buy_signal[0] == 1:
+            self.order = self.buy()
+        if not self.position and self.sell_signal[0] == 1:
+            self.order = self.sell()
+        
+        if self.getposition().size < 0 and self.buy_signal[0] == 1:
             self.order = self.close()
+            self.order = self.buy()
+        if self.getposition().size > 0 and self.sell_signal[0] == 1:
+            self.order = self.close()
+            self.order = self.sell()
+
+        # if self.data.datetime.time() >= time(23, 45) and self.position:
+        #     self.order = self.close()
+
+    def stop(self):
+        print('period: %s, k_u: %s, k_d: %s, final value: %.2f' %(
+            self.p.period, self.p.k_u, self.p.k_d, self.broker.getvalue()
+        ))
