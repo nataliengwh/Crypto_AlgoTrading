@@ -21,7 +21,7 @@ class DT_line(bt.Indicator):
 
 
 class DualThrust(bt.Strategy):
-    params = (('period',2), ('k_u',0.7), ('k_d', 0.7))
+    params = (('period',2), ('k_u',0.1), ('k_d', 0.9))
     
     def __init__(self):
         self.log("Using Dual Thrust strategy")

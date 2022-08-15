@@ -1,13 +1,19 @@
+from sqlite3 import paramstyle
 import backtrader as bt
 from datetime import datetime
 from termcolor import colored
 
 class SMA(bt.Strategy):
 
+
+    params = (('fast',5), ('slow',40))
+
+
+
     def __init__(self):
         self.log("Using SMA strategy")
-        self.sma_fast = bt.indicators.MovingAverageSimple(self.data0.close, period = 500)
-        self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 800)
+        self.sma_fast = bt.indicators.MovingAverageSimple(self.data1.close, period = self.p.fast)
+        self.sma_slow = bt.indicators.MovingAverageSimple(self.data1.close, period = self.p.slow)
         
         self.signal = bt.indicators.CrossOver(self.sma_fast, self.sma_slow)
         self.signal.plotinfo.plot = False
@@ -40,4 +46,5 @@ class SMA(bt.Strategy):
             self.order = self.sell()
 
 
-        
+    def stop(self):
+        print(f'SMA_fast: {self.p.fast}, SMA_slow: {self.p.slow}, final value: {self.broker.getvalue()}')

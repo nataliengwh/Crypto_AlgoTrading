@@ -12,8 +12,17 @@ class SMA(StrategyBase):
         StrategyBase.__init__(self)
         self.log("Using SMA strategy")
 
-        self.sma_fast = bt.indicators.MovingAverageSimple(self.data0.close, period = 30)
-        self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 1100)
+        # self.sma_fast = bt.indicators.MovingAverageSimple(self.data0.close, period = 30)
+        # self.sma_slow = bt.indicators.MovingAverageSimple(self.data0.close, period = 1100)
+        
+        self.sma_fast = bt.indicators.MovingAverageSimple(self.data1.close, period = 5)
+        self.sma_slow = bt.indicators.MovingAverageSimple(self.data1.close, period = 20)
+        # self.sma_fast = self.sma_fast()
+        # self.sma_slow = self.sma_slow()
+        # self.sma_fast.plotinfo.plotmaster = self.data0
+        # self.sma_slow.plotinfo.plotmaster = self.data0
+        # self.data1.plotinfo.plot = False
+
         self.profit_treshold = 0
         self.profit = 0
         self.max_profit = 0
