@@ -7,6 +7,7 @@ from strategies.rsi import RSI
 from strategies.SMA import SMA
 from strategies.Dual_Thrust import DualThrust
 from strategies.pairs_trading import PairsTrading
+from strategies.pairs_trade import PairsTrade
 from utils import print_trade_analysis, print_sqn
 
 class CustomDataset(bt.feeds.GenericCSVData):
@@ -22,13 +23,16 @@ class CustomDataset(bt.feeds.GenericCSVData):
 def main():
     cerebro = bt.Cerebro(quicknotify=True)
     ############## DATA FOR SINGLE TS ##############
+    # SMA 463%
+    # min: RSI + SMA 584%
+    # day: RSI + SMA 617%
     # data = CustomDataset(
     #         name=COIN_TARGET,
     #         dataname="data/BTCUSDT.csv",
     #         timeframe=bt.TimeFrame.Minutes,
     #         # buy and hold btc in this period is 540% (7.2k to 46.3k)
-    #         fromdate=dt.datetime(2020, 1, 1), 
-    #         todate=dt.datetime(2021, 12, 31),
+    #         fromdate=dt.datetime(2021, 11, 1),
+    #         todate=dt.datetime(2022, 6, 30),
     #         nullvalue=0.0
     #     )
     # cerebro.adddata(data)
@@ -41,16 +45,16 @@ def main():
             name=coin0,
             dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2020, 1, 1), 
-            todate=dt.datetime(2021, 12, 31),
+            fromdate=dt.datetime(2021, 11, 1, 0, 0),
+            todate=dt.datetime(2021, 11, 2, 2, 0),
             nullvalue=0.0
         )
     data1 = CustomDataset(
             name=coin1,
             dataname="data/ETHUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2020, 1, 1), 
-            todate=dt.datetime(2021, 12, 31),
+            fromdate=dt.datetime(2021, 11, 1, 0, 0),
+            todate=dt.datetime(2021, 11, 2, 2, 0),
             nullvalue=0.0
         )
     cerebro.adddata(data0)
@@ -80,13 +84,16 @@ def main():
     # cerebro.addstrategy(DualThrust)
     cerebro.addstrategy(PairsTrading,
                         lookback=20,
-                        max_lookback=30,
-                        enter_threshold_size=2, 
-                        exit_threshold_size=0.5, 
+                        enter_threshold_size=2,
+                        exit_threshold_size=0.5,
                         loss_limit=-0.015,
                         coin0=coin0,
                         coin1=coin1,
                         )
+    # cerebro.addstrategy(PairsTrade,
+    #                     coin0=coin0,
+    #                     coin1=coin1,
+    #                     )
 
     # Starting backtrader bot
     initial_value = cerebro.broker.getvalue()
@@ -99,6 +106,7 @@ def main():
     print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
     print_sqn(result[0].analyzers.sqn.get_analysis())
     print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
+    print(result[0])
     print_trade_analysis(result[0].analyzers.ta.get_analysis())
     
     # plot result

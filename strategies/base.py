@@ -29,11 +29,9 @@ class StrategyBase(bt.Strategy):
     def short(self):
         if self.last_operation == "SELL":
             return
-
         if ENV == DEVELOPMENT:
             self.log("Sell ordered: $%.2f" % self.data0.close[0])
             return self.sell()
-
         cash, value = self.broker.get_wallet_balance(COIN_TARGET)
         amount = value*0.99
         self.log("Sell ordered: $%.2f. Amount %.6f %s - $%.2f USDT" % (self.data0.close[0],
@@ -43,14 +41,11 @@ class StrategyBase(bt.Strategy):
     def long(self):
         if self.last_operation == "BUY":
             return
-
         self.log("Buy ordered: $%.2f" % self.data0.close[0], True)
         self.buy_price_close = self.data0.close[0]
         price = self.data0.close[0]
-
         if ENV == DEVELOPMENT:
             return self.buy()
-
         cash, value = self.broker.get_wallet_balance(COIN_REFER)
         amount = (value / price) * 0.99  # Workaround to avoid precision issues
         self.log("Buy ordered: $%.2f. Amount %.6f %s. Balance $%.2f USDT" % (self.data0.close[0],
@@ -60,13 +55,13 @@ class StrategyBase(bt.Strategy):
     def notify_order(self, order):
         if order.status in [order.Submitted]:
             # Buy/Sell order submitted to/by broker - Nothing to do
-            self.log('ORDER SUBMITTED')
+            # self.log('ORDER SUBMITTED')
             self.order = order
             return
 
         if order.status in [order.Accepted]:
             # Buy/Sell order accepted to/by broker - Nothing to do
-            self.log('ORDER ACCEPTED')
+            # self.log('ORDER ACCEPTED')
             self.order = order
             return
         
@@ -107,18 +102,15 @@ class StrategyBase(bt.Strategy):
         if trade.pnl < 0:
             color = 'red'
 
-        self.log(colored('OPERATION PROFIT, GROSS %.2f, NET %.2f' % (trade.pnl, trade.pnlcomm), color), True)
+        self.log(colored('PROFIT, GROSS %.2f, NET %.2f' % (trade.pnl, trade.pnlcomm), color), True)
 
     def log(self, txt, send_telegram=False, color=None):
         if not DEBUG:
             return
-
         value = datetime.now()
         if len(self) > 0:
             print(self.data0)
             value = self.data0.datetime.datetime()
-
         if color:
             txt = colored(txt, color)
-
         print('[%s] %s' % (value.strftime("%d-%m-%y %H:%M"), txt))

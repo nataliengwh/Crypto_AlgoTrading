@@ -10,7 +10,6 @@ class PairsTrading(StrategyBase):
     
     params = dict (
         lookback = 20,
-        max_lookback = 30,
         enter_threshold_size = 2,
         exit_threshold_size = 0.5,
         loss_limit = -0.015,
@@ -27,7 +26,6 @@ class PairsTrading(StrategyBase):
         self.coin0 = self.p.coin0
         self.coin1 = self.p.coin1
         self.lookback = self.p.lookback
-        self.max_lookback = self.p.max_lookback
         self.enter_threshold_size = self.p.enter_threshold_size
         self.exit_threshold_size = self.p.exit_threshold_size
         self.loss_limit = self.p.loss_limit
@@ -45,7 +43,6 @@ class PairsTrading(StrategyBase):
         self.lower_limit = None
         self.up_medium = None
         self.low_medium = None
-        self.allow_trade = True
 
     ##################################### ACTIONS WHEN LIMIT REACHED #####################################
 
@@ -59,42 +56,34 @@ class PairsTrading(StrategyBase):
 
     def long_spread(self):
         self.status = 2
-        # Calculating the number of shares for each stock
-        x = int((2 * self.broker.getvalue() / 3.0) / (self.data0[0])) 
-        y = int((2 * self.broker.getvalue() / 3.0) / (self.data1[0])) 
-
-        # Place the order
-        self.buy(data=self.data0, size=(x + self.qty0))  # Place an order for buying x + qty1 shares
-        self.sell(data=self.data1, size=(y + self.qty1))  # Place an order for selling y + qty2 shares
-
-        # Updating the counters with new value
-        self.qty0 = x 
-        self.qty1 = y 
-
-        # keep track of trade variables
+        print(f"broker value {self.broker.getvalue()}")
+        x = int((2 * self.broker.getvalue() / 3.0) / (self.data0[0]))
+        print(f"x {x}")
+        y = int((2 * self.broker.getvalue() / 3.0) / (self.data1[0]))
+        self.buy(data=self.data0, size=(x + self.qty0))
+        self.sell(data=self.data1, size=(y + self.qty1))
+        print(f"buy size {x + self.qty0}")
+        self.qty0 = x
+        self.qty1 = y
+        print(f"qty1 {y}")
         self.initial_cash = self.qty0 * self.data0[0] + 0.5 * self.qty1 * self.data1[0]
         self.initial_long_pv = self.data0[0] * self.qty0
         self.initial_short_pv = 0.5 * self.data1[0] * self.qty1
+        print(self.initial_long_pv, self.initial_short_pv)
         self.initial_price_data0, self.initial_price_data1 = self.data0[0], self.data1[0]
 
         print("########### Trade Action: Long spread ###########")
-        print(f"         Buy {x + self.qty0} {self.coin0} @ {self.data0[0]}")
-        print(f"         Sell {y + self.qty1} {self.coin1} @ {self.data1[0]}")
+        print(f"         Buy {self.qty0} {self.coin0} @ {self.data0[0]}")
+        print(f"         Sell {self.qty1} {self.coin1} @ {self.data1[0]}")
 
     def short_spread(self):
         self.status = 1
         x = int((2 * self.broker.getvalue() / 3.0) / (self.data0.close[0]))  
-        y = int((2 * self.broker.getvalue() / 3.0) / (self.data1.close[0]))  
-
-        # Placing the order
-        self.sell(data=self.data0, size=(x + self.qty0))  # Place an order for buying y + qty2 shares
-        self.buy(data=self.data1, size=(y + self.qty1))  # Place an order for selling x + qty1 shares
-
-        # Updating the counters with new value
+        y = int((2 * self.broker.getvalue() / 3.0) / (self.data1.close[0]))
+        self.sell(data=self.data0, size=(x + self.qty0))
+        self.buy(data=self.data1, size=(y + self.qty1))
         self.qty0 = x  
-        self.qty1 = y  
-
-        # keep track of trade variables
+        self.qty1 = y
         self.initial_cash = self.qty1 * self.data1[0] + 0.5 * self.qty0 * self.data0[0]
         self.initial_long_pv = self.data1[0] * self.qty1
         self.initial_short_pv = 0.5 * self.data0[0] * self.qty0
@@ -105,10 +94,8 @@ class PairsTrading(StrategyBase):
         print(f"         Sell {x + self.qty0} {self.coin0} @ {self.data0[0]}")
 
     def exit_spread(self):
-        # Exit positions
         self.close(self.data0)
         self.close(self.data1)
-        # initialize position
         self.qty0 = 0
         self.qty1 = 0
         self.status = 0
@@ -120,9 +107,8 @@ class PairsTrading(StrategyBase):
     
     def update_threshold(self):
         # define limits when no position
-        Y = pd.Series(self.data0.get(size=self.lookback, ago=1))
-        X = pd.Series(self.data1.get(size=self.lookback, ago=1))
-
+        Y = pd.Series(self.data0.get(size=self.lookback, ago=1),dtype='float64')
+        X = pd.Series(self.data1.get(size=self.lookback, ago=1),dtype='float64')
         self.spread_mean = (Y - X).mean()
         self.spread_std = (Y - X).std()
         self.upper_limit = self.spread_mean + self.enter_threshold_size * self.spread_std
@@ -139,8 +125,8 @@ class PairsTrading(StrategyBase):
                 self.short_spread()
             elif spread < self.lower_limit:
                 self.long_spread()
-        # short data0, long data1
         elif self.status == 1:
+            # short coin0, long coin1
             if spread < self.lower_limit:
                 self.long_spread()
             elif spread < self.up_medium:
@@ -151,12 +137,10 @@ class PairsTrading(StrategyBase):
                 net_gain_long = long_pv - self.initial_long_pv
                 net_gain_short = short_pv - self.initial_short_pv
                 return_of_current_trade = (net_gain_long + net_gain_short) / self.initial_cash
-                # if losing too much money, exit
                 if return_of_current_trade < self.loss_limit or short_pv <= 0:
                     self.exit_spread()
         elif self.status == 2:
-            # "LONG the spread" status
-            # short data1, long data0
+            # long coin0, short coin1
             if spread > self.upper_limit:
                 self.short_spread()
             elif spread > self.low_medium:
@@ -167,7 +151,6 @@ class PairsTrading(StrategyBase):
                 net_gain_long = long_pv - self.initial_long_pv
                 net_gain_short = short_pv - self.initial_short_pv
                 return_of_current_trade = (net_gain_long + net_gain_short) / self.initial_cash
-                # if losing too much money, exit
                 if return_of_current_trade < self.loss_limit or short_pv <= 0:
                     self.exit_spread()
 
@@ -176,5 +159,4 @@ class PairsTrading(StrategyBase):
     def next(self):
         if self.status == 0: # no position
             self.update_threshold() # get enter/ exit levels
-        if self.allow_trade:
-            self.run_trade_strategy()
+        self.run_trade_strategy()
