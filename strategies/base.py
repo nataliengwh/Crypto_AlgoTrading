@@ -71,21 +71,20 @@ class StrategyBase(bt.Strategy):
         elif order.status in [order.Completed]:
             if order.isbuy():
                 self.last_operation = "BUY"
-                self.log(
-                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
-                    (order.executed.price,
-                     order.executed.value,
-                     order.executed.comm), True)
+                # self.log(
+                #     'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                #     (order.executed.price,
+                #      order.executed.value,
+                #      order.executed.comm), True)
                 if ENV == PRODUCTION:
                     print(order.__dict__)
-
             else:  # Sell
                 self.last_operation = "SELL"
                 self.reset_sell_indicators()
-                self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
-                         (order.executed.price,
-                          order.executed.value,
-                          order.executed.comm), True)
+                # self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                #          (order.executed.price,
+                #           order.executed.value,
+                #           order.executed.comm), True)
 
             # Sentinel to None: new orders allowed
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
@@ -102,7 +101,7 @@ class StrategyBase(bt.Strategy):
         if trade.pnl < 0:
             color = 'red'
 
-        self.log(colored('PROFIT, GROSS %.2f, NET %.2f' % (trade.pnl, trade.pnlcomm), color), True)
+        # self.log(colored('PROFIT, GROSS %.2f, NET %.2f' % (trade.pnl, trade.pnlcomm), color), True)
 
     def log(self, txt, send_telegram=False, color=None):
         if not DEBUG:

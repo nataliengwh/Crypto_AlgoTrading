@@ -1,5 +1,6 @@
 from strategies.base import StrategyBase
 import pandas as pd
+from datetime import datetime
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -9,7 +10,7 @@ class PairsTrade(StrategyBase):
     params = dict(
         lookback=20,
         enter_std=2,
-        exit_std=1, #0.5
+        exit_std=0.5, #0.5
         stop_loss=-0.05, #-0.015
         coin0='',
         coin1='',
@@ -30,6 +31,8 @@ class PairsTrade(StrategyBase):
         self.qty0, self.qty1 = 0, 0
         self.enter_upper, self.enter_lower = None, None
         self.exit_upper, self.exit_lower = None, None
+        self.initial_pos = 0
+        self.ts = None
 
     def get_threshold(self, spread):
         # calculate enter and exit entry point
@@ -45,9 +48,11 @@ class PairsTrade(StrategyBase):
         if spread > self.enter_upper:
             # indicates that cn0 is overpriced
             self.short_coin0()
-        elif spread < self.enter_upper:
+        elif spread < self.enter_lower:
             # indicates that cn1 is overpriced
             self.long_coin0()
+        else:
+            pass
 
     def long_coin0(self):
         self.status = 'long_coin0'
@@ -55,9 +60,10 @@ class PairsTrade(StrategyBase):
         self.qty1 = int(self.broker.getvalue() / 2 / self.data1[0])
         self.buy(data=self.data0,size=(self.qty0))
         self.sell(data=self.data1, size=(self.qty1))
-        print(f"##################### Long {self.coin0} #####################")
+        print(f"###### [{self.ts}] ###### Long {self.coin0} ######")
         print(f"Long {self.qty0} {self.coin0} @ {self.data0[0]}")
         print(f"Short {self.qty1} {self.coin1} @ {self.data1[0]}")
+        self.start_pos = (self.qty0 * self.data0[0])-(self.qty1 * self.data1[0])
 
     def short_coin0(self):
         self.status = 'short_coin0'
@@ -65,12 +71,15 @@ class PairsTrade(StrategyBase):
         self.qty1 = int(self.broker.getvalue() / 2 / self.data1[0])
         self.sell(data=self.data0, size=(self.qty0))
         self.buy(data=self.data1, size=(self.qty1))
-        print(f"##################### Short {self.coin0} #####################")
+        print(f"###### [{self.ts}] ###### Short {self.coin0} ######")
         print(f"Short {self.qty0} {self.coin0} @ {self.data0[0]}")
         print(f"Long {self.qty1} {self.coin1} @ {self.data1[0]}")
+        self.start_pos = -(self.qty0 * self.data0[0])+(self.qty1 * self.data1[0])
 
     def exit_trade(self):
         self.status = 'no_position'
+        print(f"[{self.ts}] PNL {self.trade_pnl:.1f}, {self.trade_pnl / self.start_pos:.2f}%")
+        print(f"exit @ {self.data0[0]}, {self.data1[0]}")
         self.close(self.data0)
         self.close(self.data1)
         self.qty0, self.qty1 = 0, 0
@@ -79,13 +88,16 @@ class PairsTrade(StrategyBase):
 
     def next(self):
         spread = (self.data0[0] - self.data1[0])
+        self.ts = self.data0.datetime.datetime().strftime("%d-%m-%y %H:%M")
         if self.status == 'no_position':
             self.get_threshold(spread)
-
-        elif ((self.status == 'long_coin0') & (spread > self.exit_lower)) | \
-                ((self.status == 'short_coin0') & (spread < self.exit_upper)):
-            if self.status == 'long_coin0':
-                print(f"exit long_coin0   -     {spread}   -     {self.exit_lower}")
-            elif self.status == 'short_coin0':
-                print(f"exit short_coin0   -    {spread}   -    {self.exit_upper}")
-            self.exit_trade()
+        elif self.status == 'long_coin0':
+            current_pos = (self.qty0 * self.data0[0])-(self.qty1 * self.data1[0])
+            self.trade_pnl = current_pos - self.start_pos
+            if (spread > self.exit_lower) | (self.trade_pnl < self.stop_loss):
+                self.exit_trade()
+        elif self.status == 'short_coin0':
+            current_pos = -(self.qty0 * self.data0[0])+(self.qty1 * self.data1[0])
+            self.trade_pnl = current_pos - self.start_pos
+            if (spread < self.exit_upper) | (self.trade_pnl < self.stop_loss):
+                self.exit_trade()

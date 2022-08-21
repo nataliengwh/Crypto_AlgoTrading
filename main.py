@@ -21,7 +21,7 @@ class CustomDataset(bt.feeds.GenericCSVData):
     )
 
 def main():
-    cerebro = bt.Cerebro(quicknotify=True)
+    cerebro = bt.Cerebro()
     ############## DATA FOR SINGLE TS ##############
     # SMA 463%
     # min: RSI + SMA 584%
@@ -82,18 +82,18 @@ def main():
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
     # cerebro.addstrategy(DualThrust)
-    cerebro.addstrategy(PairsTrading,
-                        lookback=20,
-                        enter_threshold_size=2,
-                        exit_threshold_size=0.5,
-                        loss_limit=-0.015,
-                        coin0=coin0,
-                        coin1=coin1,
-                        )
-    # cerebro.addstrategy(PairsTrade,
+    # cerebro.addstrategy(PairsTrading,
+    #                     lookback=20,
+    #                     enter_threshold_size=2,
+    #                     exit_threshold_size=0.5,
+    #                     loss_limit=-0.015,
     #                     coin0=coin0,
     #                     coin1=coin1,
     #                     )
+    cerebro.addstrategy(PairsTrade,
+                        coin0=coin0,
+                        coin1=coin1,
+                        )
 
     # Starting backtrader bot
     initial_value = cerebro.broker.getvalue()
