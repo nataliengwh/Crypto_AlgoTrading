@@ -101,15 +101,13 @@ class PairsTrade(StrategyBase):
         self.status = 'no_position'
         print(f"[{self.ts}] PNL {self.trade_pnl:.1f}, {self.trade_pnl_pct:.4f}%")
         print(f"exit @ {self.data0[0]}, {self.data1[0]}")
+        # track PNL for different cases
         if case == 1:
             self.long_coin0_PL += self.trade_pnl
-            print(f"Cumulative PL from Long {self.coin0} is {self.long_coin0_PL:.1f}")
         elif case == 2:
             self.short_coin0_PL += self.trade_pnl
-            print(f"Cumulative PL from Short {self.coin0} is {self.short_coin0_PL:.1f}")
         else:
             self.stop_loss_PL += self.trade_pnl
-            print(f"Cumulative PL from Stop Loss is {self.stop_loss_PL:.1f}")
         self.close(self.data0)
         self.close(self.data1)
         # initialize tracker for new trade
@@ -144,6 +142,10 @@ class PairsTrade(StrategyBase):
             self.check_exit_condition()
 
     def stop(self):
+        print("##################### BACKTEST COMPLETED #####################")
+        print(f"Final Portfolio: {self.broker.getvalue():.1f}, Return: {((self.broker.getvalue()/1000000)-1)*100:.1f}%")
         print(f"Lookback: {self.lookback}, Enter SD: {self.enter_std},")
         print(f"Exit SD: {self.exit_std}, Stop Loss: {self.stop_loss},")
-        print(f"Final Portfolio: {self.broker.getvalue()}")
+        print(f"Cumulative PL from Long {self.coin0} is {self.long_coin0_PL:.1f}")
+        print(f"Cumulative PL from Short {self.coin0} is {self.short_coin0_PL:.1f}")
+        print(f"Cumulative PL from Stop Loss is {self.stop_loss_PL:.1f}")

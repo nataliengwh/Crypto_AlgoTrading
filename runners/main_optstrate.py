@@ -26,7 +26,7 @@ def main():
     ############## DATA FOR SINGLE TS ##############
     data = CustomDataset(
             name=COIN_TARGET,
-            dataname="data/BTCUSDT.csv",
+            dataname="../data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
             # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
             fromdate=dt.datetime(2020, 1, 1), 
