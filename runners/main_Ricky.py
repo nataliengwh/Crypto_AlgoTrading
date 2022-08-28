@@ -10,6 +10,8 @@ from strategies.pairs_trading import PairsTrading
 from strategies.pairs_trade import PairsTrade
 from utils import print_trade_analysis, print_sqn
 
+from strategies.sentiment_trade import SentimentTrade
+
 class CustomDataset(bt.feeds.GenericCSVData):
     params = (
         ('datetime', 1),
@@ -19,48 +21,65 @@ class CustomDataset(bt.feeds.GenericCSVData):
         ('close', 5),
         ('volume', 6),
     )
+class CustomSentimentData(bt.feeds.GenericCSVData):
+    lines=(
+        'sentiment_flair',
+        'sentiment_vadar',
+        'sentiment_transformer',
+        )
+    params = (
+        ('datetime', 1),
+        ('open', -1),
+        ('high', -1),
+        ('low', -1),
+        ('close', -1),
+        ('volume', -1),
+        ('sentiment_flair', 9),
+        ('sentiment_vadar', 10),
+        ('sentiment_transformer', 11),
+    )
+
+
+sent = pd.read_csv('data/redditSentiment_5m_sum1.csv').append(pd.read_csv('data/redditSentiment_5m_sum2.csv'))
+sent['open_time'] = pd.to_datetime(sent.close_time).dt.round('1s') + pd.Timedelta(hours=8)
+sentSum = sent[['open_time','reddit_cnt_l5m_x',
+'reddit_positive_cnt_l5m_flair','reddit_negative_cnt_l5m_flair',
+'reddit_positive_cnt_l5m_vadar','reddit_negative_cnt_l5m_vadar',
+'reddit_positive_cnt_l5m_transformer','reddit_negative_cnt_l5m_transformer',]]
+sentSum['reddit_pos_perc_flair'] = sentSum['reddit_positive_cnt_l5m_flair']/sentSum['reddit_cnt_l5m_x']
+sentSum['reddit_pos_perc_vadar'] = sentSum['reddit_positive_cnt_l5m_vadar']/sentSum['reddit_cnt_l5m_x']
+sentSum['reddit_pos_perc_transformer'] = sentSum['reddit_positive_cnt_l5m_transformer']/sentSum['reddit_cnt_l5m_x']
+
+# sentSum.to_csv('data/sentSum.csv')
+
+price = pd.read_csv('data/BTCUSDT.csv')
+price['open_time'] = pd.to_datetime(price.open_time)
+price_f = pd.merge(price,sentSum,how='left', on=['open_time'])
+
 
 def main():
     cerebro = bt.Cerebro(quicknotify=True)
-    ############## DATA FOR SINGLE TS ##############
-    # SMA 463%
-    # min: RSI + SMA 584%
-    # day: RSI + SMA 617%
-    # data = CustomDataset(
-    #         name=COIN_TARGET,
-    #         dataname="data/BTCUSDT.csv",
-    #         timeframe=bt.TimeFrame.Minutes,
-    #         # buy and hold btc in this period is 540% (7.2k to 46.3k)
-    #         fromdate=dt.datetime(2021, 11, 1),
-    #         todate=dt.datetime(2022, 6, 30),
-    #         nullvalue=0.0
-    #     )
-    # cerebro.adddata(data)
-    # cerebro.resampledata(data, timeframe = bt.TimeFrame.Days)
-    # cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=1)
-
-    ############## DATA FOR MULTI TS ##############
-    coin0, coin1 = ("BTCUSDT","ETHUSDT")
-    data0 = CustomDataset(
-            name=coin0,
+    ############### DATA FOR SINGLE TS ##############
+    data = CustomDataset(
+            name=COIN_TARGET,
             dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2021, 11, 1, 0, 0),
-            todate=dt.datetime(2021, 11, 2, 2, 0),
+            # buy and hold btc in this period is 540% (7.2k to 46.3k)
+            fromdate=dt.datetime(2021, 11, 1),
+            todate=dt.datetime(2022, 6, 30),
             nullvalue=0.0
         )
-    data1 = CustomDataset(
-            name=coin1,
-            dataname="data/ETHUSDT.csv",
+    cerebro.adddata(data)
+
+    dataSentiment = CustomSentimentData(
+            name='Sentiment',
+            dataname="data/sentSum.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2021, 11, 1, 0, 0),
-            todate=dt.datetime(2021, 11, 2, 2, 0),
-            nullvalue=0.0
-        )
-    cerebro.adddata(data0)
-    cerebro.adddata(data1)
-    # cerebro.resampledata(data0, timeframe=bt.TimeFrame.Days, compression=1)
-    # cerebro.resampledata(data1, timeframe=bt.TimeFrame.Days, compression=1)
+            fromdate=dt.datetime(2021, 11, 1),
+            todate=dt.datetime(2022, 6, 30)#,
+            #nullvalue=0.0
+    )
+    cerebro.adddata(dataSentiment)
 
     ############## TRADE SETUP ##############
     class FullMoney(bt.sizers.PercentSizer):
@@ -82,14 +101,7 @@ def main():
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
     # cerebro.addstrategy(DualThrust)
-    cerebro.addstrategy(PairsTrading,
-                        lookback=20,
-                        enter_threshold_size=2,
-                        exit_threshold_size=0.5,
-                        loss_limit=-0.015,
-                        coin0=coin0,
-                        coin1=coin1,
-                        )
+    cerebro.addstrategy(SentimentTrade)
     # cerebro.addstrategy(PairsTrade,
     #                     coin0=coin0,
     #                     coin1=coin1,
@@ -123,3 +135,7 @@ if __name__ == "__main__":
     except Exception as err:
         print("Finished with error: ", err)
         raise
+
+
+
+

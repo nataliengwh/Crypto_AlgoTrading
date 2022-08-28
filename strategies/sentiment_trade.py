@@ -2,25 +2,21 @@ import backtrader as bt
 from config import ENV, PRODUCTION
 from strategies.base import StrategyBase
 
-import pandas as pd
-sent = pd.read_csv('data/redditSentiment_5m_sum1.csv').append(pd.read_csv('data/redditSentiment_5m_sum2.csv'))
-sent['close_time5'] = sent.close_time.str[:10]
-sentSum = sent[['close_time5','reddit_cnt_l5m_x',
-'reddit_positive_cnt_l5m_flair','reddit_negative_cnt_l5m_flair',
-'reddit_positive_cnt_l5m_vadar','reddit_negative_cnt_l5m_vadar',
-'reddit_positive_cnt_l5m_transformer','reddit_negative_cnt_l5m_transformer',]].groupby(['close_time5']).sum()
-sentSum['reddit_pos_perc_flair'] = sentSum['reddit_positive_cnt_l5m_flair']/sentSum['reddit_cnt_l5m_x']
-sentSum['reddit_pos_perc_vadar'] = sentSum['reddit_positive_cnt_l5m_vadar']/sentSum['reddit_cnt_l5m_x']
-sentSum['reddit_pos_perc_transformer'] = sentSum['reddit_positive_cnt_l5m_transformer']/sentSum['reddit_cnt_l5m_x']
+
 
 class SentimentTrade(StrategyBase):
-    params = dict (
-        lookback = 10
+    params = dict(
+        period_ema_fast=20, #10
+        period_ema_slow=50 #100
     )
 
     def __init__(self):
         StrategyBase.__init__(self)
-        self.log("Using Sentiment indicator for trading")
+        self.log("Using Sentiment Analysis Results")
+        print(dir(self))
+        self.profit_treshold = 0
+        self.profit = 0
+        self.max_profit = 0
 
         self.ema_fast = bt.indicators.EMA(period=self.p.period_ema_fast)
         self.ema_slow = bt.indicators.EMA(period=self.p.period_ema_slow)
@@ -28,6 +24,9 @@ class SentimentTrade(StrategyBase):
         self.profit_treshold = 0
         self.profit = 0
         self.max_profit = 0
+
+        
+
 
     def update_indicators(self):
         self.profit = 0
@@ -37,8 +36,21 @@ class SentimentTrade(StrategyBase):
                 self.max_profit = self.profit
 
     def next(self):
-        self.update_indicators()
-
+        
+        # self.update_indicators()
+        #print(
+        #    'C',self.data0._name,
+        #    'A',self.data0.datetime[0],
+        #    'A',self.data0.close[0],
+        #    'C',self.data1._name,
+        #    'B',self.data1.datetime[0],
+        #    'B',self.data1.sentiment_flair[0],
+        #    'B',self.data1.sentiment_vadar[0],
+        #    'B',self.data1.sentiment_transformer[0],
+        #    )
+        
+        
+        
         if self.status != "LIVE" and ENV == PRODUCTION:  # waiting for live status in production
             return
 
@@ -46,14 +58,14 @@ class SentimentTrade(StrategyBase):
             return
 
         if self.last_operation != "BUY":
-            if self.rsi < 30 and self.ema_fast > self.ema_slow:
-                self.log("Long by indicator rsi < 30: percentage %.5f %%" % self.profit)
-                self.long()
-
+            if self.data1.sentiment_vadar[0]<0.1:
+                self.log("Long by positive market sentiment: percentage %.5f %%" % self.profit)
+                self.long()               
+            
         if self.last_operation != "SELL":
-            # set profit treshhold for stop win
-            if self.profit > self.profit_treshold + 0.1:
-                self.profit_treshold += 0.1
+            if self.data1.sentiment_vadar[0]>0.9:
+                self.log("Short by negative market sentiment: percentage %.5f %%" % self.profit)
+                self.short()
 
             # stoploss and stopwin
             if self.profit < -0.05: #0.05
