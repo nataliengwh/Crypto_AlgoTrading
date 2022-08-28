@@ -56,20 +56,15 @@ class PairsTrading(StrategyBase):
 
     def long_spread(self):
         self.status = 2
-        print(f"broker value {self.broker.getvalue()}")
         x = int((2 * self.broker.getvalue() / 3.0) / (self.data0[0]))
-        print(f"x {x}")
         y = int((2 * self.broker.getvalue() / 3.0) / (self.data1[0]))
         self.buy(data=self.data0, size=(x + self.qty0))
         self.sell(data=self.data1, size=(y + self.qty1))
-        print(f"buy size {x + self.qty0}")
         self.qty0 = x
         self.qty1 = y
-        print(f"qty1 {y}")
         self.initial_cash = self.qty0 * self.data0[0] + 0.5 * self.qty1 * self.data1[0]
         self.initial_long_pv = self.data0[0] * self.qty0
         self.initial_short_pv = 0.5 * self.data1[0] * self.qty1
-        print(self.initial_long_pv, self.initial_short_pv)
         self.initial_price_data0, self.initial_price_data1 = self.data0[0], self.data1[0]
 
         print("########### Trade Action: Long spread ###########")
