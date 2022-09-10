@@ -10,8 +10,8 @@ class PairsTrade(StrategyBase):
 
     params = dict(
         lookback=20,
-        enter_std=2,
-        exit_std=1,  # 0.5
+        enter_std=0.5,
+        exit_std=0.5,  # 0.5
         stop_loss=-0.01,  # -0.015
         coin0='',
         coin1='',
