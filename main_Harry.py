@@ -30,7 +30,7 @@ def main():
             timeframe=bt.TimeFrame.Minutes,
             # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
             fromdate=dt.datetime(2020, 1, 1), 
-            todate=dt.datetime(2021, 12, 31),
+            todate=dt.datetime(2020, 12, 31),
             nullvalue=0.0
         )
     cerebro.adddata(data)
@@ -66,7 +66,7 @@ def main():
             ('percents', 99),
         )
     broker = cerebro.getbroker()
-    broker.setcommission(commission=0.001, name=COIN_TARGET)  # Simulating exchange fee
+    broker.setcommission(commission=0.001)  # Simulating exchange fee
     broker.setcash(1000000.0)
     broker.set_shortcash(True)
     #cerebro.addsizer(FullMoney)
@@ -81,10 +81,7 @@ def main():
     ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
-    cerebro.optstrategy(SMA, 
-    fast = 20, slow = [25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,150,180,200]
-    )
-    # cerebro.addstrategy(DualThrust)
+    cerebro.addstrategy(DualThrust)
     ##cerebro.addstrategy(RVI_strategy)
     # cerebro.addstrategy(PairsTrading,
     #                     lookback=20,
@@ -99,8 +96,8 @@ def main():
     # Starting backtrader bot
 ####################################################
 
-    # initial_value = cerebro.broker.getvalue()
-    # print('Starting Portfolio Value: %.2f' % initial_value)
+    initial_value = cerebro.broker.getvalue()
+    print('Starting Portfolio Value: %.2f' % initial_value)
     result = cerebro.run()
 
 
@@ -108,19 +105,19 @@ def main():
     # Print analyzers - results
 ####################################################
 
-    # final_value = cerebro.broker.getvalue()
-    # print('Final Portfolio Value: %.2f' % final_value)
-    # print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
-    # print_sqn(result[0].analyzers.sqn.get_analysis())
-    # print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
-    # print_trade_analysis(result[0].analyzers.ta.get_analysis())
+    final_value = cerebro.broker.getvalue()
+    print('Final Portfolio Value: %.2f' % final_value)
+    print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
+    print_sqn(result[0].analyzers.sqn.get_analysis())
+    print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
+    print_trade_analysis(result[0].analyzers.ta.get_analysis())
     
 
-
+ 
 
     # plot result
-    # if DEBUG:
-    #     cerebro.plot(style = 'candle')
+    if DEBUG:
+        cerebro.plot(style = 'candle')
 
 if __name__ == "__main__":
     try:

@@ -80,7 +80,10 @@ def main():
 
     ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
-    cerebro.addstrategy(SMA)
+    # cerebro.addstrategy(SMA)
+    cerebro.optstrategy(DualThrust, 
+    period = 2, k_u = 0.9, k_d = [0.1]
+    )
     # cerebro.addstrategy(DualThrust)
     ##cerebro.addstrategy(RVI_strategy)
     # cerebro.addstrategy(PairsTrading,
@@ -96,8 +99,8 @@ def main():
     # Starting backtrader bot
 ####################################################
 
-    initial_value = cerebro.broker.getvalue()
-    print('Starting Portfolio Value: %.2f' % initial_value)
+    # initial_value = cerebro.broker.getvalue()
+    # print('Starting Portfolio Value: %.2f' % initial_value)
     result = cerebro.run()
 
 
@@ -105,19 +108,19 @@ def main():
     # Print analyzers - results
 ####################################################
 
-    final_value = cerebro.broker.getvalue()
-    print('Final Portfolio Value: %.2f' % final_value)
-    print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
-    print_sqn(result[0].analyzers.sqn.get_analysis())
-    print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
-    print_trade_analysis(result[0].analyzers.ta.get_analysis())
+    # final_value = cerebro.broker.getvalue()
+    # print('Final Portfolio Value: %.2f' % final_value)
+    # print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
+    # print_sqn(result[0].analyzers.sqn.get_analysis())
+    # print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
+    # print_trade_analysis(result[0].analyzers.ta.get_analysis())
     
 
- 
+
 
     # plot result
-    if DEBUG:
-        cerebro.plot(style = 'candle')
+    # if DEBUG:
+    #     cerebro.plot(style = 'candle')
 
 if __name__ == "__main__":
     try:
