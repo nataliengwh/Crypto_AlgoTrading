@@ -1,14 +1,7 @@
-import time
 import backtrader as bt
 import datetime as dt
-import pandas as pd
-from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
-from strategies.rsi import RSI
-from strategies.SMA import SMA
-from strategies.Dual_Thrust import DualThrust
-from strategies.pairs_trading import PairsTrading
-from strategies.pairs_trade import PairsTrade
-from utils import print_trade_analysis, print_sqn
+from config import COIN_TARGET, DEBUG
+from runners.utils import print_trade_analysis, print_sqn
 
 from strategies.sentiment_trade import SentimentTrade
 
