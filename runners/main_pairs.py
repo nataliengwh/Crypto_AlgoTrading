@@ -29,7 +29,7 @@ def main():
     # )
     # data1 = CustomDataset(
     #     name=coin1,
-    #     dataname="data/pair_trade/XMRUSDT2020.csv",
+    #     dataname="data/pairs_trading/XMRUSDT2020.csv",
     #     timeframe=bt.TimeFrame.Minutes,
     #     fromdate=dt.datetime(2020, 1, 1, 0, 0),
     #     todate=dt.datetime(2020, 12, 31, 0, 0),
@@ -45,7 +45,7 @@ def main():
     # )
     # data1 = CustomDataset(
     #     name=coin1,
-    #     dataname="data/pair_trade/DOTUSDT2021.csv",
+    #     dataname="data/pairs_trading/DOTUSDT2021.csv",
     #     timeframe=bt.TimeFrame.Minutes,
     #     fromdate=dt.datetime(2021, 1, 1, 0, 0),
     #     todate=dt.datetime(2021, 12, 31, 0, 0),
@@ -56,15 +56,15 @@ def main():
             name=coin0,
             dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2022, 1, 1, 0, 0),
-            todate=dt.datetime(2022, 6, 30, 0, 0),
+            fromdate=dt.datetime(2020, 1, 1, 0, 0),
+            todate=dt.datetime(2021, 12, 31, 0, 0),
         )
     data1 = CustomDataset(
             name=coin1,
-            dataname="data/pair_trade/BCHUSDT2022.csv",
+            dataname="data/pairs_trading/BCHUSDT2022.csv",
             timeframe=bt.TimeFrame.Minutes,
-            fromdate=dt.datetime(2022, 1, 1, 0, 0),
-            todate=dt.datetime(2022, 6, 30, 0, 0),
+            fromdate=dt.datetime(2020, 1, 1, 0, 0),
+            todate=dt.datetime(2021, 12, 31, 0, 0),
     )
     cerebro.adddata(data0)
     cerebro.adddata(data1)
@@ -77,7 +77,7 @@ def main():
             ('percents', 99),
         )
     broker = cerebro.getbroker()
-    broker.setcommission(commission=0.05, name="BTC")  # Simulating exchange fee
+    broker.setcommission(commission=0.001)  # Simulating exchange fee
     broker.setcash(1000000.0)
     # cerebro.addsizer(FullMoney)
     cerebro.addsizer(bt.sizers.AllInSizer, percents=99)
@@ -86,7 +86,7 @@ def main():
     # SQN = Average( profit / risk ) / StdDev( profit / risk ) * SquareRoot( number of trades )
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
-    cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
+    #cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
     ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(PairsTrading,
@@ -101,11 +101,7 @@ def main():
     #                     coin0=coin0,
     #                     coin1=coin1,
     #                     )
-    cerebro.optstrategy(PairsTrade,
-                        lookback=20,
-                        enter_std=2,
-                        exit_std=[0.5,1],
-                        stop_loss=-0.01,
+    cerebro.addstrategy(PairsTrade
                         )
 
     # Starting backtrader bot
@@ -118,13 +114,13 @@ def main():
     print('Final Portfolio Value: %.2f' % final_value)
     print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
     print_sqn(result[0].analyzers.sqn.get_analysis())
-    print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
+    #print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
     print_trade_analysis(result[0].analyzers.ta.get_analysis())
 
     # for plotting
-    # data1.plotinfo.plotmaster = data0
-    # data1.plotinfo.sameaxis = True
-    # cerebro.plot()  #style = 'candle')
+    data1.plotinfo.plotmaster = data0
+    data1.plotinfo.sameaxis = True
+    cerebro.plot(style = 'candle')  #style = 'candle')
 
 if __name__ == "__main__":
     try:

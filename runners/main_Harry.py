@@ -30,7 +30,7 @@ def main():
             timeframe=bt.TimeFrame.Minutes,
             # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
             fromdate=dt.datetime(2020, 1, 1), 
-            todate=dt.datetime(2021, 12, 31),
+            todate=dt.datetime(2020, 12, 31),
             nullvalue=0.0
         )
     cerebro.adddata(data)
@@ -66,7 +66,7 @@ def main():
             ('percents', 99),
         )
     broker = cerebro.getbroker()
-    broker.setcommission(commission=0.001, name=COIN_TARGET)  # Simulating exchange fee
+    broker.setcommission(commission=0.001)  # Simulating exchange fee
     broker.setcash(1000000.0)
     broker.set_shortcash(True)
     #cerebro.addsizer(FullMoney)
@@ -80,8 +80,8 @@ def main():
 
     ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
-    cerebro.addstrategy(SMA)
-    # cerebro.addstrategy(DualThrust)
+    # cerebro.addstrategy(SMA)
+    cerebro.addstrategy(DualThrust)
     ##cerebro.addstrategy(RVI_strategy)
     # cerebro.addstrategy(PairsTrading,
     #                     lookback=20,

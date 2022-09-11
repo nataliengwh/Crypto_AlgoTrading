@@ -6,7 +6,7 @@ setup(
     packages=[''],
     url='',
     license='',
-    author='NatNg',
+    author='NatalieNg',
     author_email='',
     description='crypto_trading_bot'
 )

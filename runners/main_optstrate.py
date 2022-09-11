@@ -26,7 +26,7 @@ def main():
     ############## DATA FOR SINGLE TS ##############
     data = CustomDataset(
             name=COIN_TARGET,
-            dataname="data/BTCUSDT.csv",
+            dataname="../data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
             # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
             fromdate=dt.datetime(2020, 1, 1), 
@@ -81,8 +81,8 @@ def main():
     ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
-    cerebro.optstrategy(SMA, 
-    fast = 20, slow = [25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,150,180,200]
+    cerebro.optstrategy(DualThrust, 
+    period = 2, k_u = 0.9, k_d = [0.1]
     )
     # cerebro.addstrategy(DualThrust)
     ##cerebro.addstrategy(RVI_strategy)
