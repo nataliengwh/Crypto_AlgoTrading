@@ -4,7 +4,7 @@ from termcolor import colored
 
 class DT_line(bt.Indicator):
     lines = ('U','D')
-    params = (('period',2), ('k_u',0.7), ('k_d', 0.7))
+    #params = (('period',2), ('k_u',0.7), ('k_d', 0.7))
 
     def __init__(self) -> None:
         self.addminperiod(self.p.period + 1)
