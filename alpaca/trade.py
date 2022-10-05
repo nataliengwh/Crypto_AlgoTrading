@@ -54,7 +54,17 @@ exit_upper = mean + (exit_std * std)
 enter_lower = mean - (enter_std * std)
 exit_lower = mean - (exit_std * std)
 
-print(data0,data1)
+spread = data0[-1:]['close'] - data1[-1:]['close']
+
+if spread > enter_upper:
+    create_order('BTCUSD', side = 'sell', type = 'market', time_in_force = 'gtc')
+    create_order('ETHUSD', side = 'buy', type = 'market', time_in_force = 'gtc')
+elif spread < enter_lower:
+    create_order('BTCUSD', side = 'buy', type = 'market', time_in_force = 'gtc')
+    create_order('ETHUSD', side = 'sell', type = 'market', time_in_force = 'gtc')
+
+
+
 # if spread > self.enter_upper:
 #     # indicates that cn0 is overpriced
 #     short_coin0()
