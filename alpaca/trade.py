@@ -26,6 +26,11 @@ def create_order(symbol, qty, side, type, time_in_force):
 
     return json.loads(r.content)
 
+def get_position():
+    r = requests.get(POSITIONS_URL, headers=HEADERS)
+    return json.loads(r.content)
+
+
 def get_orders():
     r = requests.get(ORDERS_URL, headers=HEADERS)
     return json.loads(r.content)
@@ -56,26 +61,13 @@ exit_lower = mean - (exit_std * std)
 
 spread = data0[-1:]['close'] - data1[-1:]['close']
 
-if spread > enter_upper:
-    create_order('BTCUSD', side = 'sell', type = 'market', time_in_force = 'gtc')
-    create_order('ETHUSD', side = 'buy', type = 'market', time_in_force = 'gtc')
-elif spread < enter_lower:
-    create_order('BTCUSD', side = 'buy', type = 'market', time_in_force = 'gtc')
-    create_order('ETHUSD', side = 'sell', type = 'market', time_in_force = 'gtc')
+# if spread > enter_upper:
+#     create_order('BTCUSD', side = 'sell', type = 'market', time_in_force = 'gtc')
+#     create_order('ETHUSD', side = 'buy', type = 'market', time_in_force = 'gtc')
+# elif spread < enter_lower:
+#     create_order('BTCUSD', side = 'buy', type = 'market', time_in_force = 'gtc')
+#     create_order('ETHUSD', side = 'sell', type = 'market', time_in_force = 'gtc')
 
 
 
-# if spread > self.enter_upper:
-#     # indicates that cn0 is overpriced
-#     short_coin0()
-# elif spread < self.enter_lower:
-#     # indicates that cn1 is overpriced
-#     long_coin0()
-
-
-# response = create_order("AAPL", 100, "buy", "market", "gtc")
-# response = create_order("MSFT", 1000, "buy", "market", "gtc")
-
-# orders = get_orders()
-
-# print(orders)
+print(data0, data1)
