@@ -10,11 +10,9 @@ POSITIONS_URL = "{}/v2/positions".format(BASE_URL)
 QUOTE_URL = "{}/v1beta2/crypto/latest/trades".format(BASE_URL)
 HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 
-enter_std=0.5
-exit_std=0.5  # 0.5
+enter_std=0.1
+exit_std=0.1  # 0.5
 stop_loss=0.95  # 0.9
-long_BCH = False
-long_BTC = False
 
 def get_account():
     r = requests.get(ACCOUNT_URL, headers=HEADERS)
@@ -28,10 +26,10 @@ def get_portfolio():
     r = requests.get(ACCOUNT_URL, headers=HEADERS)
     return float(json.loads(r.content)['portfolio_value'])
 
-def create_order(symbol, qty, side, type, time_in_force):
+def create_order(symbol, notional, side, type, time_in_force):
     data = {
         "symbol": symbol,
-        "qty": qty,
+        "notional": notional,
         "side": side,
         "type": type,
         "time_in_force": time_in_force
@@ -71,29 +69,36 @@ def trade():
     enter_lower = mean - (enter_std * std)
     exit_lower = mean - (exit_std * std)
     spread = float(data0[-1:]['close']) - float(data1[-1:]['close'])
+    int_portfolio = get_portfolio()
     print(f'Current time : {datetime.now()}\nSpread : {spread}\nUpper and lower : {enter_upper, enter_lower}')
     if get_position() == []:
+        print("No position yet")
         if spread > enter_upper:
-            create_order('BCH/USD', side = 'buy', qty = get_cash()/get_quote('BCH/USD')-1, type = 'market', time_in_force = 'gtc')
+            print("Spread is higher, long BCH")
+            create_order('BCH/USD', side = 'buy', notional = get_cash()*0.99, type = 'market', time_in_force = 'gtc')
             int_portfolio = get_portfolio()
-            long_BCH = True
+
         elif spread < enter_lower:
-            create_order('BTC/USD', side = 'buy', qty = get_cash()/get_quote('BTC/USD')-0.1,type = 'market', time_in_force = 'gtc')
+            print("Spread is lower, long BTC")
+            create_order('BTC/USD', side = 'buy', notional = get_cash()*0.99,type = 'market', time_in_force = 'gtc')
             int_portfolio = get_portfolio()
-            long_BTC = True
-        print(get_position(), get_portfolio)
+
+        print(get_position(), get_portfolio())
     ###check exist###
     if get_position() != []:
-        if get_portfolio()/int_portfolio <= stop_loss:
+        print(f"Current position : {get_position()[0]['qty_available'],get_position()[0]['symbol'][:3]}\nPnL is {get_position()[0]['unrealized_pl']}")
+
+        if get_portfolio()/int_portfolio <= stop_loss or float(get_position()[0]['unrealized_plpc']) <= -0.05:
+            print("Stop loss")
             close_all_position()
-            long_BTC = False
-            long_BCH = False
-        if long_BCH and spread < exit_upper:
+
+        elif get_position()[0]['symbol'] == 'BCHUSD' and spread < exit_upper:
             close_all_position()
-            long_BCH = False
-        if long_BTC and spread > exit_lower:
+            return
+
+        elif get_position()[0]['symbol'] == 'BTHUSD' and spread > exit_lower:
             close_all_position()
-            long_BTC = False
+
 
 schedule.every(5).minutes.do(trade)
   
