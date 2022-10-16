@@ -1,8 +1,11 @@
 import time
 import backtrader as bt
 import datetime as dt
-import pandas as pd
-#from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
+
+from ccxtbt import CCXTStore
+from config import BINANCE, ENV, PRODUCTION, COIN_BASE, COIN_QUOTE, DEBUG
+
+from sizer.percent import FullMoney
 #from strategies.rsi import RSI
 from strategies.SMA import SMA
 from strategies.Dual_Thrust import DualThrust
@@ -23,13 +26,76 @@ class CustomDataset(bt.feeds.GenericCSVData):
     )
 
 def main():
-    cerebro = bt.Cerebro()
+    cerebro = bt.Cerebro(quicknotify=True)
+
+    if ENV == PRODUCTION:  # Live trading with Binance
+        broker_config = {
+            'apiKey': BINANCE.get("key"),
+            'secret': BINANCE.get("secret"),
+            'nonce': lambda: str(int(time.time() * 1000)),
+            'enableRateLimit': True,
+        }
+
+        store = CCXTStore(exchange='binance', currency=COIN_QUOTE, config=broker_config, retries=5, debug=DEBUG)
+
+        broker_mapping = {
+            'order_types': {
+                bt.Order.Market: 'market',
+                bt.Order.Limit: 'limit',
+                bt.Order.Stop: 'stop-loss',
+                bt.Order.StopLimit: 'stop limit'
+            },
+            'mappings': {
+                'closed_order': {
+                    'key': 'status',
+                    'value': 'closed'
+                },
+                'canceled_order': {
+                    'key': 'status',
+                    'value': 'canceled'
+                }
+            }
+        }
+
+        broker = store.getbroker(broker_mapping=broker_mapping)
+        cerebro.setbroker(broker)
+
+        hist_start_date = dt.datetime.utcnow() - dt.timedelta(minutes=30000)
+        data = store.getdata(
+            dataname='%s/%s' % (COIN_BASE, COIN_QUOTE),
+            name='%s%s' % (COIN_BASE, COIN_QUOTE),
+            timeframe=bt.TimeFrame.Minutes,
+            fromdate=hist_start_date,
+            compression=30,
+            ohlcv_limit=99999
+        )
+
+        # Add the feed
+        cerebro.adddata(data)
+
+    else:  # Backtesting with CSV file
+        data = CustomDataset(
+            name=COIN_BASE,
+            dataname="dataset/binance_nov_18_mar_19_btc.csv",
+            timeframe=bt.TimeFrame.Minutes,
+            fromdate=dt.datetime(2018, 9, 20),
+            todate=dt.datetime(2019, 3, 13),
+            nullvalue=0.0
+        )
+
+        cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=30)
+
+        broker = cerebro.getbroker()
+        broker.setcommission(commission=0.001, name=COIN_BASE)  # Simulating exchange fee
+        broker.setcash(100000.0)
+        cerebro.addsizer(FullMoney)
+
     ############## DATA FOR SINGLE TS ##############
     # SMA 463%
     # min: RSI + SMA 584%
     # day: RSI + SMA 617%
     # data = CustomDataset(
-    #         name=COIN_TARGET,
+    #         name=COIN_BASE,
     #         dataname="data/BTCUSDT.csv",
     #         timeframe=bt.TimeFrame.Minutes,
     #         # buy and hold btc in this period is 540% (7.2k to 46.3k)
@@ -70,7 +136,7 @@ def main():
             ('percents', 99),
         )
     broker = cerebro.getbroker()
-    broker.setcommission(commission=0.001, name=COIN_TARGET)  # Simulating exchange fee
+    broker.setcommission(commission=0.001, name=COIN_BASE)  # Simulating exchange fee
     broker.setcash(1000000.0)
     cerebro.addsizer(FullMoney)
     
