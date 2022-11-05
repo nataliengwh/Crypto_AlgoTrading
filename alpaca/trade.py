@@ -96,7 +96,7 @@ def trade():
             close_all_position()
             return
 
-        elif get_position()[0]['symbol'] == 'BTHUSD' and spread > exit_lower:
+        elif get_position()[0]['symbol'] == 'BTCUSD' and spread > exit_lower:
             close_all_position()
 
 

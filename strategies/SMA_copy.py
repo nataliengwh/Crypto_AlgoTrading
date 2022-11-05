@@ -6,7 +6,7 @@ from termcolor import colored
 class SMA(bt.Strategy):
 
 
-    params = (('fast',5), ('slow',40))
+    params = (('fast',2), ('slow',30))
 
 
 

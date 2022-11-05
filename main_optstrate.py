@@ -2,13 +2,16 @@ import time
 import backtrader as bt
 import datetime as dt
 import pandas as pd
-#from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
-#from strategies.rsi import RSI
+# from config import BINANCE, ENV, PRODUCTION, COIN_TARGET, COIN_REFER, DEBUG
+# from strategies.rsi import RSI
 from strategies.SMA_copy import SMA
-#from strategies.Dual_Thrust import DualThrust
-#from strategies.BollingerBands import BollingerBands
-from strategies.Grid import GridStrategy
+from strategies.Dual_Thrust import DualThrust
+# from strategies.pairs_trading import PairsTrading
+from strategies.RVI import RVI_strategy
+from strategies.BollingerBands import BollingerBands
 from utils import print_trade_analysis, print_sqn
+from strategies.Grid import GridStrategy
+
 
 class CustomDataset(bt.feeds.GenericCSVData):
     params = (
@@ -20,6 +23,7 @@ class CustomDataset(bt.feeds.GenericCSVData):
         ('volume', 6),
     )
 
+
 # class CustomDataset(bt.feeds.GenericCSVData):
 #     params = (
 #         ('datetime', 0),
@@ -30,30 +34,31 @@ class CustomDataset(bt.feeds.GenericCSVData):
 #         ('volume', 5),
 #     )
 
+
+
 def main():
     cerebro = bt.Cerebro(quicknotify=True)
     ############## DATA FOR SINGLE TS ##############
-
-
-    # data = CustomDataset(
-    #         name="BTC",
-    #         dataname="data/BTC.csv",
-    #         timeframe=bt.TimeFrame.Minutes,
-    #         # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
-    #         fromdate=dt.datetime(2022, 7, 1), 
-    #         todate=dt.datetime(2022, 10, 31),
-    #         nullvalue=0.0
-    #     )
 
     data = CustomDataset(
             name="BTC",
             dataname="data/BTCUSDT.csv",
             timeframe=bt.TimeFrame.Minutes,
             # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
-            fromdate=dt.datetime(2021, 6, 1), 
-            todate=dt.datetime(2021, 11, 30),
+            fromdate=dt.datetime(2021, 12, 1), 
+            todate=dt.datetime(2022, 6, 30),
             nullvalue=0.0
-        )    
+        )
+
+    # data = CustomDataset(
+    #         name="BTC",
+    #         dataname="data/BTC_v2.csv",
+    #         timeframe=bt.TimeFrame.Minutes,
+    #         # buy and hold btc in this period is 547.016% (7.2k to 46.3k)
+    #         fromdate=dt.datetime(2022, 7, 1), 
+    #         todate=dt.datetime(2022, 10, 31),
+    #         nullvalue=0.0
+    #     )
 
 
 
@@ -90,7 +95,7 @@ def main():
             ('percents', 99),
         )
     broker = cerebro.getbroker()
-    broker.setcommission(commission=0.001)  # Simulating exchange fee
+    broker.setcommission(commission=0.001, name="BTC")  # Simulating exchange fee
     broker.setcash(1000000.0)
     broker.set_shortcash(True)
     #cerebro.addsizer(FullMoney)
@@ -100,12 +105,23 @@ def main():
     # SQN = Average( profit / risk ) / StdDev( profit / risk ) * SquareRoot( number of trades )
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
-    #cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name='mysharpe')
 
     ############## IMPLEMENT STRATEGIES ##############
     # cerebro.addstrategy(RSI)  # basic rsi + SMA returns 6xx% return
     # cerebro.addstrategy(SMA)
-    cerebro.addstrategy(GridStrategy)
+
+    # cerebro.optstrategy(GridStrategy, 
+    # period = [100,200,300,400,500,600,700,800,900,1000], width = [0.01, 0.05,0.08, 0.1, 0.12,0.15, 0.18,0.2]
+    # )
+
+    cerebro.optstrategy(GridStrategy, 
+    grids = [10,20,30,40,50], width = [0.01,0.05,0.1,0.15,0.2]
+    #grids = [10], width = [0.2]
+    )
+    #[0.2,0.4,0.6,0.8]    
+    #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+    # cerebro.addstrategy(DualThrust)
     ##cerebro.addstrategy(RVI_strategy)
     # cerebro.addstrategy(PairsTrading,
     #                     lookback=20,
@@ -120,8 +136,8 @@ def main():
     # Starting backtrader bot
 ####################################################
 
-    initial_value = cerebro.broker.getvalue()
-    print('Starting Portfolio Value: %.2f' % initial_value)
+    # initial_value = cerebro.broker.getvalue()
+    # print('Starting Portfolio Value: %.2f' % initial_value)
     result = cerebro.run()
 
 
@@ -129,18 +145,19 @@ def main():
     # Print analyzers - results
 ####################################################
 
-    final_value = cerebro.broker.getvalue()
-    print('Final Portfolio Value: %.2f' % final_value)
-    print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
-    print_sqn(result[0].analyzers.sqn.get_analysis())
-    #print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
-    #print_trade_analysis(result[0].analyzers.ta.get_analysis())
+    # final_value = cerebro.broker.getvalue()
+    # print('Final Portfolio Value: %.2f' % final_value)
+    # print('Profit %.3f%%' % ((final_value - initial_value) / initial_value * 100))
+    # print_sqn(result[0].analyzers.sqn.get_analysis())
+    # print('Sharpe Ratio:', result[0].analyzers.mysharpe.get_analysis())
+    # print_trade_analysis(result[0].analyzers.ta.get_analysis())
     
 
- 
+
 
     # plot result
-    cerebro.plot(style = 'candle')
+    # if DEBUG:
+    #     cerebro.plot(style = 'candle')
 
 if __name__ == "__main__":
     try:
