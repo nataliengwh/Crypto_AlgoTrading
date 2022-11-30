@@ -6,6 +6,6 @@ In this project, we would first perform comprehensive exploration for existing m
 To evaluate how these methods perform in the cryptocurrency market, we would apply back-testing and compare the results to each other. Besides, buy and hold Bitcoin is selected as our benchmark to assess how the methods are performing when compared to the market. Further optimizations and results analysis would be conducted on individual methods for the better ground to propose more sophisticated combination of methods.
 
 Work distribution:
-- Natalie: Pairs Trading
-- Harry: Momentum & Reinforcement Learning
-- Ricky: Sentiment Analysis
+- Natalie: Pairs Trading, Triangular Arbitrage
+- Harry: Momentum, Grid trading, Reinforcement Learning
+- Ricky: Sentiment Analysis, Caash & Carry

@@ -1,7 +1,7 @@
 from datetime import datetime
 import backtrader as bt
 from termcolor import colored
-from config import DEVELOPMENT, COIN_TARGET, COIN_REFER, ENV, PRODUCTION, DEBUG
+from config import DEVELOPMENT, COIN_BASE, COIN_QUOTE, ENV, PRODUCTION, DEBUG
 
 class StrategyBase(bt.Strategy):
     # for notification of order, trade
@@ -22,7 +22,6 @@ class StrategyBase(bt.Strategy):
 
     def notify_data(self, data, status, *args, **kwargs):
         self.status = data._getstatusname(status)
-        print(self.status)
         if status == data.LIVE:
             self.log("LIVE DATA - Ready to trade")
 
@@ -76,8 +75,8 @@ class StrategyBase(bt.Strategy):
                 #     (order.executed.price,
                 #      order.executed.value,
                 #      order.executed.comm), True)
-                if ENV == PRODUCTION:
-                    print(order.__dict__)
+                # if ENV == PRODUCTION:
+                    # print(order.__dict__)
             else:  # Sell
                 self.last_operation = "SELL"
                 self.reset_sell_indicators()
@@ -108,7 +107,6 @@ class StrategyBase(bt.Strategy):
             return
         value = datetime.now()
         if len(self) > 0:
-            print(self.data0)
             value = self.data0.datetime.datetime()
         if color:
             txt = colored(txt, color)

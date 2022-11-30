@@ -9,9 +9,9 @@ class PairsTrade(StrategyBase):
 
     params = dict(
         lookback=20,
-        enter_std=0.5,
+        enter_std=2,
         exit_std=0.5,  # 0.5
-        stop_loss=-0.01,  # -0.015
+        stop_loss=-0.015,  # -0.015
         coin0='',
         coin1='',
         )
@@ -150,6 +150,8 @@ class PairsTrade(StrategyBase):
             self.check_exit_condition()
 
     def stop(self):
+        self.sell(data=self.data0, size=(self.qty0))
+        self.sell(data=self.data1, size=(self.qty1))
         print("##################### BACKTEST COMPLETED #####################")
         print(f"Final Portfolio: {self.broker.getvalue():.1f}, Return: {((self.broker.getvalue()/1000000)-1)*100:.1f}%")
         print(f"Lookback: {self.lookback}, Enter SD: {self.enter_std},")

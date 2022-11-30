@@ -1,0 +1,9 @@
+alpaca/config.py
+*data/pairs_trading/machine_learning
+*.ipynb_checkpoints
+.gitattributes
+*.vscode
+*__pycache__
+*/__pycache__
+*.pyc
+*.DS_Store
